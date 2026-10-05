@@ -19,7 +19,7 @@ format:
 	ruff format .
 
 bench:
-	python eval/bench_triage.py
-	python eval/bench_memory.py
-	python eval/bench_brain.py
-	python eval/load_test.py
+	python -m eval.bench_triage
+	python -m eval.bench_memory
+	python -m eval.bench_brain
+	python -m eval.load_test
