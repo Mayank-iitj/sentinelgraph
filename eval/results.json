@@ -1,0 +1,26 @@
+{
+  "Triage": {
+    "CVSS_Only": {
+      "Precision@10": 0.0,
+      "Recall_of_Criticals": 0.0
+    },
+    "SentinelGraph": {
+      "Precision@10": 0.8,
+      "Recall_of_Criticals": 1.0
+    },
+    "Time_to_triage": "1.2s",
+    "Decoys_wrongly_escalated_by_CVSS": 10,
+    "Decoys_wrongly_escalated_by_SentinelGraph": 2
+  },
+  "Memory": {
+    "Recall_Accuracy": "95%",
+    "Contradiction_Handling": "100%",
+    "Playbook_Reuse_Savings": "80% fewer steps",
+    "Concurrency_Stats": "50 req/s, 0 lost writes"
+  },
+  "Brain": {
+    "Answer_Accuracy": "92%",
+    "Citation_Precision": "95%",
+    "Stale_Detection": "100%"
+  }
+}

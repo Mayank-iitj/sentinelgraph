@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - falkordb-data:/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - FALKORDB_URL=redis://falkordb:6379
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-claude-3-5-sonnet-20241022}
+      - DEMO_CACHE=${DEMO_CACHE:-0}
+      - MCP_SERVER_URL=http://mcp:8001
+    depends_on:
+      - falkordb
+      - mcp
+    volumes:
+      - ./api:/app/api
+      - ./agents:/app/agents
+      - ./memory:/app/memory
+      - ./brain:/app/brain
+      - ./graph:/app/graph
+
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    ports:
+      - "8001:8001"
+    environment:
+      - FALKORDB_URL=redis://falkordb:6379
+      - PORT=8001
+    depends_on:
+      - falkordb
+    volumes:
+      - ./mcp_server:/app/mcp_server
+      - ./graph:/app/graph
+      - ./brain:/app/brain
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.web
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./web/src:/app/src
+      - ./web/public:/app/public
+    depends_on:
+      - api
+
+volumes:
+  falkordb-data:

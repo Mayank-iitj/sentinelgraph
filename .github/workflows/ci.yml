@@ -1,0 +1,55 @@
+name: SentinelGraph CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      falkordb:
+        image: falkordb/falkordb:latest
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install ruff mypy
+
+    - name: Lint with Ruff
+      run: |
+        ruff check .
+
+    - name: Seed data (offline test)
+      env:
+        FALKORDB_URL: redis://localhost:6379
+      run: |
+        python data/gen_security.py
+        python data/gen_company.py
+        python graph/ingest.py
+
+    - name: Run Benchmarks (Smoke Test)
+      env:
+        LLM_OFFLINE: "1"
+        FALKORDB_URL: redis://localhost:6379
+      run: |
+        make bench
+
+    - name: Run Tests
+      env:
+        FALKORDB_URL: redis://localhost:6379
+      run: |
+        pytest tests/
