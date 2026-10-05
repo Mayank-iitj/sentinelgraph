@@ -1,18 +1,20 @@
 from .queries import GraphClient
 import networkx as nx
 
+
 class GraphAlgorithms:
     def __init__(self, client: GraphClient):
         self.client = client
-        
+
     def _fetch_subgraph(self):
         # Fallback subgraph fetch for NetworkX
         query = "MATCH (n)-[r]->(m) RETURN id(n), id(m), labels(n), type(r)"
         results = self.client.run_query(query)
         G = nx.DiGraph()
         for row in results:
-            if not row: continue
-            u, v, l_u, r_type = row[0], row[1], row[2], row[3]
+            if not row:
+                continue
+            u, v, _l_u, r_type = row[0], row[1], row[2], row[3]
             G.add_edge(u, v, type=r_type)
         return G
 
@@ -22,7 +24,7 @@ class GraphAlgorithms:
         MATCH (a:Asset {{id: $asset_id}})-[*1..{max_hops}]->(connected)
         RETURN DISTINCT connected
         """
-        return self.client.run_query(query, {'asset_id': asset_id})
+        return self.client.run_query(query, {"asset_id": asset_id})
 
     def rank_by_centrality(self, metric: str = "pagerank"):
         try:
@@ -50,7 +52,7 @@ class GraphAlgorithms:
                 scores = {}
             # Sort by score
             return sorted(scores.items(), key=lambda x: x[1], reverse=True)
-            
+
     def cluster_alerts(self):
         try:
             query = "CALL algo.wcc('Alert', 'TRIGGERED_ON')"

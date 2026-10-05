@@ -12,4 +12,4 @@ register_brain_tools(mcp)
 register_action_tools(mcp)
 
 if __name__ == "__main__":
-    mcp.run(transport="sse") # or standard
+    mcp.run(transport="sse")  # or standard
