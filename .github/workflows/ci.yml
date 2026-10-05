@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       falkordb:
-        image: falkordb/falkordb:8.10.2
+        image: falkordb/falkordb:6.0.1
         ports:
           - 6379:6379
 
