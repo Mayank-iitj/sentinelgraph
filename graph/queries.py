@@ -42,12 +42,12 @@ class GraphClient:
     def find_attack_paths(
         self, source_filter: str, target_id: str, max_hops: int = 5, limit: int = 10
     ):
-        # Cypher shortest path
-        # source_filter like 'a:Asset {internet_exposed: true}'
         query = f"""
-        MATCH p = shortestPath(({source_filter})-[*1..{max_hops}]->(t:Asset {{id: $target_id}}))
-        RETURN p
-        LIMIT $limit
+        MATCH ({source_filter}), (target:Asset) 
+        WHERE target.id = $target_id 
+        WITH a, target WHERE a.id <> target.id 
+        WITH shortestPath((a)-[*1..{max_hops}]->(target)) AS p 
+        RETURN p LIMIT $limit
         """
         return self.run_query(query, {"target_id": target_id, "limit": limit})
 

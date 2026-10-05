@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       falkordb:
-        image: falkordb/falkordb:latest
+        image: falkordb/falkordb:8.10.2
         ports:
           - 6379:6379
 
@@ -33,7 +33,13 @@ jobs:
       run: |
         ruff check .
 
-    - name: Seed data (offline test)
+    - name: Run Tests
+      env:
+        FALKORDB_URL: redis://localhost:6379
+      run: |
+        pytest tests/
+
+    - name: Seed data
       env:
         FALKORDB_URL: redis://localhost:6379
       run: |
@@ -41,15 +47,9 @@ jobs:
         python data/gen_company.py
         python graph/ingest.py
 
-    - name: Run Benchmarks (Smoke Test)
+    - name: Run Benchmarks
       env:
         LLM_OFFLINE: "1"
         FALKORDB_URL: redis://localhost:6379
       run: |
         make bench
-
-    - name: Run Tests
-      env:
-        FALKORDB_URL: redis://localhost:6379
-      run: |
-        pytest tests/
