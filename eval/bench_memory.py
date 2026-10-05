@@ -14,9 +14,9 @@ def evaluate_memory():
 
     # We update results.json
     try:
-        with open("eval/results.json", "r") as f:
+        with open("eval/results.json") as f:
             data = json.load(f)
-    except Exception:
+    except (FileNotFoundError, json.JSONDecodeError):
         data = {}
 
     data["Memory"] = metrics["Memory"]

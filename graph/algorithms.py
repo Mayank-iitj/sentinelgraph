@@ -1,5 +1,9 @@
-from .queries import GraphClient
+import logging
+
 import networkx as nx
+from .queries import GraphClient
+
+logger = logging.getLogger(__name__)
 
 
 class GraphAlgorithms:
@@ -37,7 +41,8 @@ class GraphAlgorithms:
             elif metric == "degree":
                 query = "CALL algo.degreeCentrality('Asset')"
                 return self.client.run_query(query)
-        except Exception:
+        except Exception as exc:  # noqa: BLE001 - fallback to NetworkX on DB failure
+            logger.warning("Graph algorithm query failed; using NetworkX fallback: %s", exc)
             # Fallback to networkx
             G = self._fetch_subgraph()
             if not G.nodes:
@@ -57,7 +62,8 @@ class GraphAlgorithms:
         try:
             query = "CALL algo.wcc('Alert', 'TRIGGERED_ON')"
             return self.client.run_query(query)
-        except Exception:
+        except Exception as exc:  # noqa: BLE001 - fallback to NetworkX on DB failure
+            logger.warning("Graph algorithm query failed; using NetworkX fallback: %s", exc)
             # Fallback to wcc on undirected nx
             G = self._fetch_subgraph().to_undirected()
             components = list(nx.connected_components(G))

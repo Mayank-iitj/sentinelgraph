@@ -12,7 +12,7 @@ def ingest_data(tenant_id: str = "tenant_1"):
     print(f"Ingesting into graph: {tenant_id}")
 
     # Load schema
-    with open("graph/schema.cypher", "r") as f:
+    with open("graph/schema.cypher") as f:
         schema_cypher = f.read()
 
     # Apply schema line by line
@@ -21,14 +21,14 @@ def ingest_data(tenant_id: str = "tenant_1"):
         if line and not line.startswith("//"):
             try:
                 graph.query(line)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - duplicate schema is non-fatal
                 print(f"Schema ignore (likely already exists): {e}")
 
     # Load data
-    with open("data/seeds/security.json", "r") as f:
+    with open("data/seeds/security.json") as f:
         security_data = json.load(f)
 
-    with open("data/seeds/company.json", "r") as f:
+    with open("data/seeds/company.json") as f:
         company_data = json.load(f)
 
     # We will use UNWIND for bulk insert
@@ -84,7 +84,7 @@ def ingest_data(tenant_id: str = "tenant_1"):
             print(
                 f"  Inserted {len(edges_list)} {src_label}-[{rel_type}]->{tgt_label} edges"
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - duplicate edge is non-fatal
             print(f"  Warning: Edge insert {rel_type} failed: {e}")
 
     print("Ingestion complete!")

@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import Any
 
 
 class GraphClient:
@@ -18,16 +18,16 @@ class GraphClient:
                 db_url, socket_timeout=2, socket_connect_timeout=2
             )
             self.graph = self.db.select_graph(tenant_id)
-        except Exception:
+        except Exception:  # noqa: BLE001 - fallback to offline testing mode if FalkorDB is unavailable
             self.graph = None  # For offline testing
 
-    def run_query(self, query: str, params: dict = None) -> List[List[Any]]:
+    def run_query(self, query: str, params: dict = None) -> list[list[Any]]:
         if self.graph:
             res = self.graph.query(query, params or {})
             return res.result_set
         return []
 
-    def run_query_readonly(self, query: str, params: dict = None) -> List[List[Any]]:
+    def run_query_readonly(self, query: str, params: dict = None) -> list[list[Any]]:
         upper_query = query.upper()
         forbidden = ["CREATE", "SET", "DELETE", "REMOVE", "MERGE", "DROP", "CALL"]
         if any(keyword in upper_query for keyword in forbidden):

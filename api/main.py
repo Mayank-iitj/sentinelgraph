@@ -1,7 +1,6 @@
 import asyncio
 import json
 import os
-from typing import List
 
 import structlog
 from dotenv import load_dotenv
@@ -68,15 +67,17 @@ def get_tenants():
 
 
 @app.post("/triage")
-def triage_findings(findings: List[FindingInput]):
+def triage_findings(findings: list[FindingInput]):
     try:
         orchestrator = Orchestrator()
         verdicts = orchestrator.triage.run_triage([f.model_dump() for f in findings])
         return {"verdicts": [v.model_dump() for v in verdicts]}
-    except Exception as e:
-        logger.error("triage_error", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
-
+    except Exception as exc:  # noqa: BLE001 - endpoint boundary converts failures to HTTP 500
+        logger.exception("triage_error")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to triage findings",
+        ) from exc
 
 @app.get("/explain/{finding_id}")
 def explain_finding(finding_id: str):
@@ -91,10 +92,12 @@ def explain_finding(finding_id: str):
             "paths": res,
             "sources": ["doc_1", "adr_demo_001"],
         }
-    except Exception as e:
-        logger.error("explain_error", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
-
+    except Exception as exc:  # noqa: BLE001 - endpoint boundary converts failures to HTTP 500
+        logger.exception("explain_error")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to explain findings",
+        ) from exc
 
 # ──────── Graph Explorer ────────
 
@@ -133,10 +136,12 @@ def get_graph_data():
                 )
 
         return {"elements": elements}
-    except Exception as e:
-        logger.error("graph_error", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
-
+    except Exception as exc:  # noqa: BLE001 - endpoint boundary converts failures to HTTP 500
+        logger.exception("graph_error")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to get graph data",
+        ) from exc
 
 # ──────── T3: Company Brain ────────
 
@@ -201,10 +206,12 @@ def brain_ask(body: BrainQuery):
             answer = response.choices[0].message.content
 
         return {"answer": answer, "sources": sources, "paths": []}
-    except Exception as e:
-        logger.error("brain_error", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
-
+    except Exception as exc:  # noqa: BLE001 - endpoint boundary converts failures to HTTP 500
+        logger.exception("brain_error")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to query brain",
+        ) from exc
 
 # ──────── Benchmarks ────────
 
@@ -212,7 +219,7 @@ def brain_ask(body: BrainQuery):
 @app.get("/benchmarks")
 def get_benchmarks():
     try:
-        with open("eval/results.json", "r") as f:
+        with open("eval/results.json") as f:
             return json.load(f)
     except FileNotFoundError:
         return {
@@ -331,6 +338,9 @@ def run_full_pipeline():
             "remediations": remediations,
             "memory": memory_result,
         }
-    except Exception as e:
-        logger.error("pipeline_error", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:  # noqa: BLE001 - endpoint boundary converts failures to HTTP 500
+        logger.exception("pipeline_error")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to run pipeline",
+        ) from exc

@@ -3,7 +3,7 @@ import os
 
 
 def evaluate_triage():
-    with open("data/seeds/security.json", "r") as f:
+    with open("data/seeds/security.json") as f:
         data = json.load(f)
 
     findings = data.get("findings", [])

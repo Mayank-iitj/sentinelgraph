@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 
 load_dotenv()
 
@@ -22,7 +22,12 @@ class LLMClient:
                 },
             )
 
-    def generate(self, system: str, messages: list, tools: list = None):
+    def generate(
+        self,
+        system: str,
+        messages: list,
+        tools: list | None = None,
+    ):
         if self.offline:
             # Deterministic stub for tests
             return {
@@ -41,7 +46,7 @@ class LLMClient:
         try:
             response = self.client.chat.completions.create(**kwargs)
             return response
-        except Exception:
+        except OpenAIError:
             # Fallback mock response if OpenRouter is rate-limited globally
             class MockMessage:
                 def __init__(self, content):

@@ -1,6 +1,9 @@
-from graph.queries import GraphClient
-import uuid
 import datetime
+import logging
+import uuid
+from graph.queries import GraphClient
+
+logger = logging.getLogger(__name__)
 
 
 class TenancyManager:
@@ -19,10 +22,15 @@ class TenancyManager:
         for c in cypher:
             try:
                 self.client.run_query(c)
-            except Exception:
-                pass
+            except (RuntimeError, ValueError) as exc:
+                logger.debug(
+                    "Tenant constraint may already exist",
+                    extra={"constraint": c, "error": str(exc)},
+                )
+            except Exception as exc:  # noqa: BLE001 - duplicate schema is non-fatal
+                logger.debug("Tenant constraint skipped: %s", exc)
 
-    def get_user_session(self, user_id: str, session_id: str = None) -> str:
+    def get_user_session(self, user_id: str, session_id: str | None = None) -> str:
         if not session_id:
             session_id = str(uuid.uuid4())
             ts = datetime.datetime.now().isoformat()
